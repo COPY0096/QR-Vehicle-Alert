@@ -1,0 +1,85 @@
+:root {
+  --bg: #f3f5f8;
+  --card: #ffffff;
+  --text: #1b2430;
+  --muted: #5d6b7c;
+  --accent: #0b63ce;
+  --ok: #1a8f4c;
+  --err: #c62828;
+  --border: #d5dbe3;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #11161d;
+    --card: #1b232d;
+    --text: #e8edf3;
+    --muted: #9aa8b8;
+    --accent: #4c9bff;
+    --ok: #45c47b;
+    --err: #ff6b6b;
+    --border: #2f3b49;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.card {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+  background: var(--card);
+  min-height: 100vh;
+}
+.lang { display: flex; gap: 8px; justify-content: flex-end; }
+.lang button {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 14px;
+}
+.lang button[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+h1 { font-size: 1.6rem; margin: 12px 0 4px; }
+.location { color: var(--accent); font-weight: 600; margin: 0 0 8px; }
+.instructions { color: var(--muted); margin: 0 0 16px; }
+form { display: grid; gap: 14px; }
+label { display: grid; gap: 6px; font-weight: 600; font-size: 0.95rem; }
+input, textarea {
+  font: inherit;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  width: 100%;
+}
+input[name="plate"] { text-transform: uppercase; font-size: 1.25rem; letter-spacing: 0.05em; }
+.check { display: flex; align-items: center; gap: 10px; font-weight: 500; }
+.check input { width: 22px; height: 22px; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; }
+.geo { color: var(--muted); font-size: 0.85rem; margin: 0; }
+button[type="submit"] {
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+}
+button[disabled] { opacity: 0.6; }
+.error { color: var(--err); min-height: 1.2em; margin: 0; }
+#done { text-align: center; padding-top: 24px; }
+.ok {
+  width: 72px; height: 72px; margin: 0 auto;
+  border-radius: 50%;
+  background: var(--ok); color: #fff;
+  font-size: 40px; line-height: 72px;
+}

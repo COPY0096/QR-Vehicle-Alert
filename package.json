@@ -1,0 +1,23 @@
+{
+  "name": "qr-vehicle-alert",
+  "version": "1.0.0",
+  "description": "Rental car drop-off: customer scans a QR code and staff get an SMS alert to pick up the vehicle.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "qr": "node scripts/generate-qr.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^18.0.6",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.1",
+    "qrcode": "^1.5.4",
+    "twilio": "^6.1.2"
+  }
+}
