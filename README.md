@@ -127,4 +127,4 @@ scripts/generate-qr.js
 ```
 
 > El almacenamiento es un archivo JSON, pensado para **una sola instancia** del servidor.
-> Si va a escalar a varias instancias, cámbielo por una base de datos (Postgres, Redis…).
+> al momento de escalar a varias instancias, cámbiar por una base de datos (Postgres, Redis…).
