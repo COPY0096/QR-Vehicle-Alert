@@ -1,0 +1,4 @@
+[
+  { "id": "mia-airport", "name": "Miami Airport (MIA)", "address": "3900 NW 25th St, Miami, FL 33142" },
+  { "id": "brickell", "name": "Brickell Office", "notify": ["Ana", "Carlos"] }
+]

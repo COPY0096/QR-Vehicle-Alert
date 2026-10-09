@@ -28,18 +28,13 @@ class AlertStore {
   create(fields) {
     const alert = {
       number: this.nextNumber++,
-      status: 'open',
       createdAt: new Date().toISOString(),
-      remindersSent: 0,
-      claimedBy: null,
-      claimedAt: null,
-      doneAt: null,
       ...fields,
     };
     this.alerts.push(alert);
-    // Keep the file small: forget closed alerts older than 30 days.
+    // Keep the file small: forget alerts older than 30 days.
     const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-    this.alerts = this.alerts.filter((a) => a.status !== 'done' || Date.parse(a.createdAt) > cutoff);
+    this.alerts = this.alerts.filter((a) => Date.parse(a.createdAt) > cutoff);
     this.save();
     return alert;
   }
@@ -48,14 +43,6 @@ class AlertStore {
     Object.assign(alert, changes);
     this.save();
     return alert;
-  }
-
-  findByNumber(number) {
-    return this.alerts.find((a) => a.number === number);
-  }
-
-  open() {
-    return this.alerts.filter((a) => a.status === 'open');
   }
 
   list() {
