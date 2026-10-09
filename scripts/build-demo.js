@@ -31,7 +31,66 @@ const DEMO_CSS = `
 .loc img { width: 112px; height: 112px; border-radius: 8px; background: #fff; flex: none; }
 .loc strong { display: block; font-size: 1.1rem; }
 .loc span { color: var(--muted); font-size: 0.9rem; }
+.demo-map { margin: 0 0 12px; }
+.demo-map a, .demo-history-link { color: var(--accent); font-weight: 600; }
+.demo-history-link { display: block; margin: 0 0 16px; }
+#historial { margin-top: 40px; }
+#historial h2 { font-size: 1.25rem; margin: 0 0 12px; }
+.hist { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.hist li { border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; }
+.hist .meta { color: var(--muted); font-size: 0.9rem; }
+.hist a { color: var(--accent); font-weight: 600; }
+#clear-history { font: inherit; margin-top: 16px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--muted); }
 `;
+
+// Lists the test returns saved in this browser by demo-mock.js, with their map links.
+function historyScript(locations) {
+  const names = Object.fromEntries(locations.map((l) => [l.id, l.name]));
+  return `<script>
+(function () {
+  var names = ${JSON.stringify(names).replace(/</g, '\\u003c')};
+  var KEY = 'qr-demo-alerts-v1';
+  var list = document.getElementById('hist-list');
+  var data = {};
+  try { data = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
+  var alerts = (data.alerts || []).slice().reverse();
+  if (!alerts.length) {
+    list.outerHTML = '<p class="instructions">Todavia no hay devoluciones de prueba en este navegador.</p>';
+    document.getElementById('clear-history').hidden = true;
+    return;
+  }
+  alerts.forEach(function (a) {
+    var li = document.createElement('li');
+    var time = new Date(a.createdAt).toLocaleString('es-US', { timeZone: 'America/New_York', dateStyle: 'short', timeStyle: 'short' });
+    var head = document.createElement('strong');
+    head.textContent = '#' + a.number + ' · ' + a.plate;
+    var meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = (names[a.locationId] || a.locationId) + ' · ' + time + (a.spot ? ' · ' + a.spot : '');
+    li.appendChild(head);
+    li.appendChild(meta);
+    var map = document.createElement('div');
+    if (a.lat != null && a.lng != null) {
+      var link = document.createElement('a');
+      link.href = 'https://maps.google.com/?q=' + a.lat + ',' + a.lng;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.textContent = 'Ver ubicacion en el mapa';
+      map.appendChild(link);
+    } else {
+      map.className = 'meta';
+      map.textContent = 'Sin ubicacion GPS (no se compartio)';
+    }
+    li.appendChild(map);
+    list.appendChild(li);
+  });
+  document.getElementById('clear-history').addEventListener('click', function () {
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    location.reload();
+  });
+})();
+</script>`;
+}
 
 // Bundles CommonJS modules that have no Node-only dependencies so they run in the browser.
 function bundle(modules) {
@@ -112,7 +171,13 @@ ${BANNER}
 <div class="loc-list">
 ${cards.join('\n')}
 </div>
+<section id="historial">
+<h2>Devoluciones de prueba en este navegador</h2>
+<ul class="hist" id="hist-list"></ul>
+<button type="button" id="clear-history">Borrar pruebas</button>
+</section>
 </main>
+${historyScript(locations)}
 </body>
 </html>
 `);

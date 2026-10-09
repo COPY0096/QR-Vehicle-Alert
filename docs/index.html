@@ -15,6 +15,55 @@
 <a class="loc" href="mia-airport.html"><img src="qr-mia-airport.png" alt="QR Miami Airport (MIA)"><div><strong>Miami Airport (MIA)</strong><span>3900 NW 25th St, Miami, FL 33142</span></div></a>
 <a class="loc" href="brickell.html"><img src="qr-brickell.png" alt="QR Brickell Office"><div><strong>Brickell Office</strong><span>1000 Brickell Ave, Miami, FL 33131</span></div></a>
 </div>
+<section id="historial">
+<h2>Devoluciones de prueba en este navegador</h2>
+<ul class="hist" id="hist-list"></ul>
+<button type="button" id="clear-history">Borrar pruebas</button>
+</section>
 </main>
+<script>
+(function () {
+  var names = {"mia-airport":"Miami Airport (MIA)","brickell":"Brickell Office"};
+  var KEY = 'qr-demo-alerts-v1';
+  var list = document.getElementById('hist-list');
+  var data = {};
+  try { data = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
+  var alerts = (data.alerts || []).slice().reverse();
+  if (!alerts.length) {
+    list.outerHTML = '<p class="instructions">Todavia no hay devoluciones de prueba en este navegador.</p>';
+    document.getElementById('clear-history').hidden = true;
+    return;
+  }
+  alerts.forEach(function (a) {
+    var li = document.createElement('li');
+    var time = new Date(a.createdAt).toLocaleString('es-US', { timeZone: 'America/New_York', dateStyle: 'short', timeStyle: 'short' });
+    var head = document.createElement('strong');
+    head.textContent = '#' + a.number + ' · ' + a.plate;
+    var meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = (names[a.locationId] || a.locationId) + ' · ' + time + (a.spot ? ' · ' + a.spot : '');
+    li.appendChild(head);
+    li.appendChild(meta);
+    var map = document.createElement('div');
+    if (a.lat != null && a.lng != null) {
+      var link = document.createElement('a');
+      link.href = 'https://maps.google.com/?q=' + a.lat + ',' + a.lng;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.textContent = 'Ver ubicacion en el mapa';
+      map.appendChild(link);
+    } else {
+      map.className = 'meta';
+      map.textContent = 'Sin ubicacion GPS (no se compartio)';
+    }
+    li.appendChild(map);
+    list.appendChild(li);
+  });
+  document.getElementById('clear-history').addEventListener('click', function () {
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    location.reload();
+  });
+})();
+</script>
 </body>
 </html>
