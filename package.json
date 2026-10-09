@@ -7,7 +7,8 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "qr": "node scripts/generate-qr.js",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "demo:build": "node scripts/build-demo.js"
   },
   "engines": {
     "node": ">=18"
