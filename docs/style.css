@@ -94,3 +94,13 @@ button[disabled] { opacity: 0.6; }
 .loc img { width: 112px; height: 112px; border-radius: 8px; background: #fff; flex: none; }
 .loc strong { display: block; font-size: 1.1rem; }
 .loc span { color: var(--muted); font-size: 0.9rem; }
+.demo-map { margin: 0 0 12px; }
+.demo-map a, .demo-history-link { color: var(--accent); font-weight: 600; }
+.demo-history-link { display: block; margin: 0 0 16px; }
+#historial { margin-top: 40px; }
+#historial h2 { font-size: 1.25rem; margin: 0 0 12px; }
+.hist { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.hist li { border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; }
+.hist .meta { color: var(--muted); font-size: 0.9rem; }
+.hist a { color: var(--accent); font-weight: 600; }
+#clear-history { font: inherit; margin-top: 16px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--muted); }

@@ -46,7 +46,24 @@
     return e ? e.name : phone;
   }
 
-  function showPreview(duplicate) {
+  function mapBlock(alert) {
+    var p = document.createElement('p');
+    p.className = 'demo-map';
+    if (alert.lat != null && alert.lng != null) {
+      var a = document.createElement('a');
+      a.href = 'https://maps.google.com/?q=' + alert.lat + ',' + alert.lng;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = 'Ver ubicacion en el mapa';
+      p.appendChild(a);
+    } else {
+      p.textContent = 'Sin ubicacion GPS (no se compartio). Los empleados solo veran el lugar escrito: ' +
+        (alert.spot || demo.location.address || '-');
+    }
+    return p;
+  }
+
+  function showPreview(alert, duplicate) {
     var done = document.getElementById('done');
     var old = document.getElementById('demo-sms');
     if (old) old.remove();
@@ -65,6 +82,12 @@
       box.appendChild(title);
       box.appendChild(pre);
     }
+    box.appendChild(mapBlock(alert));
+    var history = document.createElement('a');
+    history.href = './#historial';
+    history.className = 'demo-history-link';
+    history.textContent = 'Ver todas las devoluciones de prueba';
+    box.appendChild(history);
     var reset = document.createElement('button');
     reset.type = 'button';
     reset.textContent = 'Probar otra devolucion';
@@ -80,7 +103,7 @@
     var input = JSON.parse((options && options.body) || '{}');
     if (input.website) return Promise.resolve(new Response('{"number":0}', { status: 201 }));
     return service.createReturn(input).then(function (result) {
-      showPreview(result.duplicate);
+      showPreview(result.alert, result.duplicate);
       return new Response(JSON.stringify({ number: result.alert.number, duplicate: result.duplicate }), {
         status: result.duplicate ? 200 : 201,
         headers: { 'Content-Type': 'application/json' },
