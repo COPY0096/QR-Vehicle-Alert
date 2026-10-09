@@ -46,7 +46,6 @@ function loadConfig(env = process.env, overrides = {}) {
     authToken: env.TWILIO_AUTH_TOKEN || '',
     messagingServiceSid: env.TWILIO_MESSAGING_SERVICE_SID || '',
     fromNumber: env.TWILIO_FROM_NUMBER || '',
-    validateWebhook: env.TWILIO_VALIDATE_WEBHOOK !== 'false',
   };
   const dryRun = !(twilio.accountSid && twilio.authToken);
   if (!dryRun && !twilio.messagingServiceSid && !twilio.fromNumber) {
@@ -62,8 +61,6 @@ function loadConfig(env = process.env, overrides = {}) {
     locations: loadLocations(env.LOCATIONS_FILE || path.join(__dirname, '..', 'config', 'locations.json')),
     smsLang: env.SMS_LANG === 'en' ? 'en' : 'es',
     timeZone: env.TZ || 'America/New_York',
-    reminderMinutes: intEnv(env, 'REMINDER_MINUTES', 10),
-    maxReminders: intEnv(env, 'MAX_REMINDERS', 2),
     dedupeMinutes: intEnv(env, 'DEDUPE_MINUTES', 15),
     adminToken: env.ADMIN_TOKEN || '',
     dataFile: env.DATA_FILE || path.join(__dirname, '..', 'data', 'alerts.json'),

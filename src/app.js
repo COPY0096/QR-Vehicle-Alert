@@ -1,7 +1,6 @@
 const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
-const twilio = require('twilio');
 const { rateLimit } = require('express-rate-limit');
 const { ValidationError } = require('./alerts');
 const { renderReturnPage, renderNotFound } = require('./page');
@@ -48,26 +47,6 @@ function createApp({ config, service, logger = console }) {
       logger.error('createReturn failed:', err);
       res.status(500).json({ error: 'server_error' });
     }
-  });
-
-  // Twilio "A message comes in" webhook: employees reply to claim/close alerts.
-  app.post('/sms/inbound', express.urlencoded({ extended: false, limit: '20kb' }), async (req, res) => {
-    if (!config.dryRun && config.twilio.validateWebhook) {
-      const signature = req.get('X-Twilio-Signature') || '';
-      const url = config.baseUrl + req.originalUrl;
-      if (!twilio.validateRequest(config.twilio.authToken, signature, url, req.body)) {
-        logger.warn('Rejected inbound SMS with invalid Twilio signature');
-        return res.status(403).send('Invalid signature');
-      }
-    }
-    const twiml = new twilio.twiml.MessagingResponse();
-    try {
-      const reply = await service.handleReply(req.body.From, req.body.Body || '');
-      if (reply) twiml.message(reply);
-    } catch (err) {
-      logger.error('handleReply failed:', err);
-    }
-    res.type('text/xml').send(twiml.toString());
   });
 
   // Simple history for managers: curl -H "Authorization: Bearer $ADMIN_TOKEN" .../api/alerts

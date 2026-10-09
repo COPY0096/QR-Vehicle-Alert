@@ -16,7 +16,7 @@ function setup(envOverrides = {}) {
   let clock = Date.parse('2026-10-08T18:00:00Z');
   const config = loadConfig({
     EMPLOYEES: `Ana:${ANA}, Luis:${LUIS}, Carlos:${CARLOS}`,
-    LOCATIONS_FILE: path.join(__dirname, '..', 'config', 'locations.json'),
+    LOCATIONS_FILE: path.join(__dirname, 'fixtures-locations.json'),
     ADMIN_TOKEN: 'secret',
     ...envOverrides,
   }, { dataFile: null });
@@ -54,7 +54,7 @@ test('scan + submit sends an SMS to every employee', async () => {
   assert.match(sms.sent[0].body, /DEVOLUCION #1001/);
   assert.match(sms.sent[0].body, /Placa: ABC123/);
   assert.match(sms.sent[0].body, /maps\.google\.com\/\?q=25\.79,-80\.29/);
-  assert.match(sms.sent[0].body, /Responde 1001/);
+  assert.doesNotMatch(sms.sent[0].body, /Responde/);
 });
 
 test('location "notify" list limits recipients', async () => {
@@ -86,71 +86,20 @@ test('duplicate scan of same plate does not re-alert', async () => {
   assert.equal(c.duplicate, false);
 });
 
-test('first employee to reply claims it; others are told', async () => {
-  const { service, sms, store } = setup();
-  await service.createReturn({ locationId: 'mia-airport', plate: 'ABC123' });
-  sms.sent.length = 0;
-
-  const reply = await service.handleReply(LUIS, 'ok 1001');
-  assert.match(reply, /asignado a ti/);
-  assert.deepEqual(sms.sent.map((m) => m.to), [ANA, CARLOS]);
-  assert.match(sms.sent[0].body, /lo toma Luis/);
-
-  assert.match(await service.handleReply(ANA, '1001'), /ya lo tiene Luis/);
-  assert.match(await service.handleReply(LUIS, 'Listo'), /cerrado/);
-  assert.equal(store.findByNumber(1001).status, 'done');
-  assert.match(await service.handleReply(ANA, '1001'), /ya esta cerrado/);
-});
-
-test('bare OK claims the only open alert, asks when several', async () => {
-  const { service } = setup();
+test('each recipient gets exactly one SMS, even with time passing', async () => {
+  const { service, sms, advance } = setup();
   await service.createReturn({ locationId: 'mia-airport', plate: 'AAA1' });
+  advance(60);
   await service.createReturn({ locationId: 'mia-airport', plate: 'BBB2' });
-  assert.match(await service.handleReply(ANA, 'ok'), /#1001, #1002/);
-  await service.handleReply(ANA, '1001');
-  assert.match(await service.handleReply(CARLOS, 'si'), /#1002 asignado a ti/);
+  assert.equal(sms.sent.length, 6);
+  assert.equal(sms.sent.filter((m) => m.body.includes('AAA1')).length, 3);
 });
 
-test('unknown senders are ignored', async () => {
-  const { service } = setup();
-  await service.createReturn({ locationId: 'mia-airport', plate: 'AAA1' });
-  assert.equal(await service.handleReply('+19999999999', '1001'), null);
-});
-
-test('reminders are re-sent while unclaimed, up to MAX_REMINDERS', async () => {
-  const { service, sms, advance } = setup({ REMINDER_MINUTES: '10', MAX_REMINDERS: '2' });
-  await service.createReturn({ locationId: 'mia-airport', plate: 'AAA1' });
-  sms.sent.length = 0;
-  advance(5);
-  assert.equal(await service.sendReminders(), 0);
-  advance(5);
-  assert.equal(await service.sendReminders(), 1);
-  assert.match(sms.sent[0].body, /RECORDATORIO: #1001 sin asignar hace 10 min/);
-  advance(10);
-  assert.equal(await service.sendReminders(), 1);
-  advance(10);
-  assert.equal(await service.sendReminders(), 0);
-});
-
-test('no reminders once claimed', async () => {
-  const { service, advance } = setup();
-  await service.createReturn({ locationId: 'mia-airport', plate: 'AAA1' });
-  await service.handleReply(ANA, '1001');
-  advance(30);
-  assert.equal(await service.sendReminders(), 0);
-});
-
-test('inbound webhook replies with TwiML', async () => {
-  const { app, service } = setup();
-  await service.createReturn({ locationId: 'mia-airport', plate: 'AAA1' });
+test('employee SMS replies are not handled', async () => {
+  const { app } = setup();
   await withServer(app, async (base) => {
-    const res = await fetch(`${base}/sms/inbound`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ From: ANA, Body: '1001' }),
-    });
-    assert.equal(res.status, 200);
-    assert.match(await res.text(), /<Message>#1001 asignado a ti/);
+    const res = await fetch(`${base}/sms/inbound`, { method: 'POST', body: new URLSearchParams({ From: ANA, Body: '1001' }) });
+    assert.equal(res.status, 404);
   });
 });
 

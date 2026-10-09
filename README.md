@@ -11,20 +11,17 @@ Cliente llega ──► deja las llaves en el buzón ──► escanea el QR del
                                          página móvil (EN/ES): placa, dónde lo dejó,
                                          GPS automático, "dejé las llaves" ✓
                                                           │
-                              SMS a todos los empleados del punto (Twilio)
+                 UN SMS (una sola vez) a los empleados seleccionados del punto,
+                 o a todos si el punto no tiene "notify" (Twilio)
                               "DEVOLUCION #1042 - Miami Airport
-                               Placa: FLA1234 / Lugar: Carril 3 / Mapa: ...
-                               Responde 1042 para tomarlo."
-                                                          │
-            Empleado responde "1042" ──► se le asigna; los demás reciben "lo toma Ana"
-            Al terminar responde "LISTO 1042" ──► alerta cerrada
-            Si nadie responde en 10 min ──► RECORDATORIO a todos (hasta 2 veces)
+                               Placa: FLA1234 / Lugar: Carril 3 / Mapa: ..."
 ```
+
+No hay respuestas, asignación ni recordatorios: cada empleado recibe el aviso una sola vez.
 
 Extras incluidos:
 - **Anti-duplicados**: si escanean dos veces la misma placa en 15 min, no se reenvía el SMS.
 - **Anti-spam**: máximo 5 envíos por IP cada 10 min + campo trampa para bots.
-- **Webhook firmado**: las respuestas por SMS se validan con la firma de Twilio.
 - SMS en **texto GSM-7** (sin emojis/acentos) para usar menos segmentos y pagar menos.
 - **Modo DRY_RUN**: sin credenciales de Twilio los SMS solo se imprimen en consola (para probar).
 
@@ -61,8 +58,6 @@ npm start                 # http://localhost:3000/r/mia-airport
 EMPLOYEES=Ana:+13055550101,Luis:+13055550102,Carlos:+13055550103
 SMS_LANG=es            # o "en"
 TZ=America/New_York
-REMINDER_MINUTES=10
-MAX_REMINDERS=2
 ```
 
 ### 3. Generar e imprimir los QR
@@ -78,9 +73,7 @@ laminados, con un texto tipo *"Drop keys & scan to notify our staff / Deje las l
 
 1. En `.env`: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` y `TWILIO_MESSAGING_SERVICE_SID`
    (o `TWILIO_FROM_NUMBER`).
-2. En la consola de Twilio → su número / Messaging Service → **"A message comes in"**:
-   `POST https://su-dominio.com/sms/inbound` (para que los empleados puedan responder).
-3. `BASE_URL` debe ser exactamente la URL pública (se usa para validar la firma de Twilio).
+2. `BASE_URL` debe ser la URL pública del servidor (es la que va dentro de los QR).
 
 ## ⚠️ Importante en EE. UU.: registro A2P 10DLC
 
@@ -95,7 +88,7 @@ números locales sin registrar. Antes de producción haga **una** de estas opcio
 Consejos para que aprueben la campaña:
 - Describa el caso como *"internal operational alerts to our own employees about returned rental vehicles"*.
 - Los empleados deben dar su **consentimiento** (opt-in) para recibir los SMS — guárdelo por escrito (p. ej., en el formulario de alta del empleado).
-- Twilio gestiona automáticamente **STOP / HELP**; la app los ignora a propósito.
+- Twilio gestiona automáticamente **STOP / HELP**.
 
 Costo orientativo: ~US$0.008–0.01 por SMS + tarifa de operador, por empleado avisado.
 
@@ -105,19 +98,15 @@ Costo orientativo: ~US$0.008–0.01 por SMS + tarifa de operador, por empleado a
 |---|---|---|
 | GET | `/r/:locationId` | Página que abre el QR |
 | POST | `/api/returns` | Envío del formulario (JSON) |
-| POST | `/sms/inbound` | Webhook de Twilio (respuestas de empleados) |
 | GET | `/api/alerts` | Historial (header `Authorization: Bearer $ADMIN_TOKEN`) |
 | GET | `/health` | Estado |
-
-Respuestas que entienden los SMS: `1042`, `OK 1042`, `OK`/`SI` (si hay una sola alerta abierta),
-`LISTO 1042` / `DONE 1042`, o `LISTO` (cierra la que tenga asignada).
 
 ## Estructura
 
 ```
-src/server.js     arranque + recordatorios cada 30 s
-src/app.js        rutas HTTP, rate limit, webhook Twilio
-src/alerts.js     lógica: crear alerta, asignar, cerrar, recordatorios
+src/server.js     arranque
+src/app.js        rutas HTTP, rate limit
+src/alerts.js     lógica: crear alerta y enviar el SMS
 src/messages.js   textos de los SMS (es / en)
 src/sms.js        cliente Twilio (o DRY_RUN)
 src/store.js      persistencia simple en data/alerts.json
