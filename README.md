@@ -25,6 +25,17 @@ Extras incluidos:
 - SMS en **texto GSM-7** (sin emojis/acentos) para usar menos segmentos y pagar menos.
 - **Modo DRY_RUN**: sin credenciales de Twilio los SMS solo se imprimen en consola (para probar).
 
+## Demo en línea
+
+**https://copy0096.github.io/QR-Vehicle-Alert/**
+
+Versión estática (GitHub Pages) del flujo del cliente: escanee un QR o toque un punto de devolución,
+llene el formulario y la página muestra el SMS que recibirían los empleados. **No envía SMS reales.**
+Usa la misma página y la misma lógica de alertas que el servidor, ejecutadas en el navegador.
+
+Se genera en `docs/` con `npm run demo:build`; vuelva a ejecutarlo y suba `docs/` después de cambiar
+la página, los textos del SMS o `config/locations.json`.
+
 ## Requisitos
 
 - Node.js 18+
@@ -113,6 +124,7 @@ src/store.js      persistencia simple en data/alerts.json
 src/page.js       HTML de la página del cliente
 public/           CSS + JS de la página (bilingüe, GPS)
 scripts/generate-qr.js
+scripts/build-demo.js  demo estática en docs/ (GitHub Pages)
 ```
 
 > El almacenamiento es un archivo JSON, pensado para **una sola instancia** del servidor.
