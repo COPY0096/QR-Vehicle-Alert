@@ -16,10 +16,6 @@ const sms = createSmsClient(config);
 const service = createAlertService({ config, store, sms });
 const app = createApp({ config, service });
 
-setInterval(() => {
-  service.sendReminders().catch((err) => console.error('Reminder job failed:', err));
-}, 30 * 1000).unref();
-
 app.listen(config.port, () => {
   console.log(`QR Vehicle Alert listening on port ${config.port}${config.dryRun ? ' (DRY_RUN: SMS are only logged)' : ''}`);
   console.log(`Employees: ${config.employees.map((e) => e.name).join(', ')}`);
