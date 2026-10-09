@@ -10,6 +10,6 @@
     "name": "Brickell Office",
     "address": "1000 Brickell Ave, Miami, FL 33131",
     "instructions": "Use the street parking marked RENTAL RETURN. Drop the keys in the key box.",
-    "notify": ["Ana", "Carlos"]
+    "notify": ["Maria"]
   }
 ]
